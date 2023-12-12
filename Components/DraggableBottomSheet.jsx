@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, PanResponder, Animated, Dimensions, TouchableOpacity, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, PanResponder, Animated, Dimensions, TouchableOpacity, Keyboard, TextInput } from 'react-native';
 import { Image } from 'react-native-elements';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
 
 const windowHeight = Dimensions.get('window').height;
 
-const DraggableBottomSheet = ({onClose}) => {
+const DraggableBottomSheet = ({onClose,item}) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const pan = useRef(new Animated.Value(windowHeight - 330)).current;
+  const pan = useRef(new Animated.Value(windowHeight - 470)).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -20,7 +20,7 @@ const DraggableBottomSheet = ({onClose}) => {
           pan.setValue(gestureState.dy);
         } else if (gestureState.dy < 0 && isSheetOpen) {
           // Allow dragging up when sheet is open
-          pan.setValue(windowHeight - 330 + gestureState.dy);
+          pan.setValue( gestureState.dy);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
@@ -57,7 +57,7 @@ const DraggableBottomSheet = ({onClose}) => {
   const openSheet = () => {
     if (!isSheetOpen) {
       Animated.spring(pan, {
-        toValue: 0,
+        toValue: windowHeight ,
         useNativeDriver: false,
       }).start();
       setIsSheetOpen(true);
@@ -66,7 +66,7 @@ const DraggableBottomSheet = ({onClose}) => {
 
   const closeSheet = () => {
     Animated.spring(pan, {
-      toValue: windowHeight - 330,
+      toValue: windowHeight - 470,
       useNativeDriver: false,
     }).start();
     setIsSheetOpen(false);
@@ -83,76 +83,33 @@ const DraggableBottomSheet = ({onClose}) => {
       ]}
       {...panResponder.panHandlers}
     >
-        <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: 10, right: 10 }}>
-            <Text style={{ fontSize: 28, color: 'red' , fontWeight:'900'}}>x</Text>
+        <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: 10, right: 20, width:50 , height:50, alignItems:'center', justifyContent:'center'}}>
+            <Text style={{ fontSize: 28, color: 'black' , fontWeight:'900'}}>x</Text>
             {/* <Image source={require('../Assets/Videos/close.png')}/> */}
         </TouchableOpacity>
       <View style={styles.handle} />
       <View style={styles.content}>
-        <View style={{width:"100%",height:60,flexDirection:"row",alignItems:"center"}}>
-            {/* <Image style={{width:50,height:50,borderRadius:25}} source={require("../Assets/profile.jpeg")}/> */}
-            <View style={{width:"55%"}}>
-                <Text style={{fontSize:17,fontWeight:"bold",marginLeft:10,color:"black"}}>Fahad Bin saeed</Text>
-                <Text style={{fontSize:14,fontWeight:"400",marginLeft:10,color:"black"}}>Fahad Bin saeed</Text>
-            </View>
-            <View style={{width:"30%",alignItems:"flex-end"}} >
-                <Text style={{fontSize:17,fontWeight:"bold",marginLeft:10,color:"black"}}>₹ 500.00</Text>
-                <Text style={{fontSize:14,fontWeight:"400",marginLeft:10,color:"black"}}>Earned</Text>
-            </View>
+        <View style={{top:50, borderWidth:.5, width:"80%", height:50,borderRadius:5,alignItems:'center', justifyContent:'center',borderColor:'grey'}}>
+            <Text style={{color:'black',fontWeight:'900', fontSize:20}}>{new Date(item.highestInventoryBid.timestamp).getMinutes()}m : {new Date(item.highestInventoryBid.timestamp).getSeconds()}s </Text>
         </View>
-        <View  style={{marginTop:30,width:"100%",flexDirection:"row",alignItems:"center",borderRadius:20,justifyContent:"space-evenly"}}>
-        <GooglePlacesAutocomplete
-        placeholder="Search"
-        minLength={2}
-        autoFocus={false}
-        returnKeyType={'search'}
-        listViewDisplayed="auto"
-        fetchDetails={true}
-        renderDescription={(row) => row.description}
-        onPress={(data, details = null) => {
-          setDestinationCoords({
-            latitude: details.geometry.location.lat,
-            longitude: details.geometry.location.lng,
-          });
-          
-        }}
-        query={{
-          key: 'AIzaSyA_l_K_OuqpSIrYiULGz22Vbe4votSkqvM',
-          language: 'en',
-          types: ['geocode', 'establishment'],
-        }}
-        styles={{
-          textInputContainer: {
-            backgroundColor: '#ffff',
-            width: '100%',
-            justifyContent:'center',
-            alignItems:'center',
-            height:60,
-            borderRadius:10,
-            // elevation:1
-            
-          },
-          description: {
-            fontWeight: 'bold',
-          },
-          predefinedPlacesDescription: {
-            color: 'black',
-          },
-          textInput: {
-            color: 'black',
-            backgroundColor:'#ffff',
-            height:60,
-            // elevation:1,
-            borderWidth:0.2,
-            borderColor:'black',
-          },
-          placeholder: {
-            color: 'red',
-          },
-        }}
-      />
-        
+        <View style={{top:70,  width:"80%", height:50,alignItems:'center', justifyContent:'space-around',flexDirection:'row'}}>
+          <Text style={{color:'black',fontWeight:'400',fontSize: 18}}>Current Bid</Text>
+          <Text style={{color:'black',fontWeight:'800',fontSize: 20}}>{item.highestInventoryBid.amount}{console.log("HIGHHH",item.highestInventoryBid)}</Text>
         </View>
+        <View style={{top:40, width:"80%", height:50,alignItems:'center',  justifyContent:'space-around',flexDirection:'row'}}>
+          <Text style={{color:'black',fontWeight:'400',fontSize: 18}}>Bid increment</Text>
+          <Text style={{color:'black',fontWeight:'800',fontSize: 20}}>₹ 5,000</Text>
+        </View>
+        <View style={{top:50,width:"80%",alignItems:'center',justifyContent:'space-around',height:90}}>
+          <Text style={{color:'lightgrey',fontWeight:'700'}}>Enter your Maximum bid amount</Text>
+          <View style={{  width:"80%", height:50,borderRadius:5,alignItems:'center', justifyContent:'center',borderColor:'grey'}}>
+          {/* <Text style={{color:'black',fontWeight:'700'}}>₹ 4,00,000</Text> */}
+          <TextInput style={{borderWidth:.5,width:"100%",borderRadius:5,paddingLeft:80}} placeholder='Enter your Amount' placeholderTextColor='black'/>
+          </View>
+        </View>
+        <TouchableOpacity style={{top:80, width:"100%", height:70,borderRadius:5,alignItems:'center', justifyContent:'center',borderColor:'grey',backgroundColor:'#FFDD03'}}>
+          <Text style={{color:'white',fontWeight:'700',fontSize: 20}}>Set Auto Bid</Text>
+        </TouchableOpacity>
 
       </View>
     </Animated.View>
@@ -169,7 +126,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 10,
-    elevation: 4
+    elevation: 4,
+    // height:200
   },
   handle: {
     width: 70,
@@ -180,8 +138,10 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   content: {
-    paddingTop: 10,
+    // paddingTop: 10,
     alignItems: 'center',
+    justifyContent:'space-around',
+    height:'40%'
   },
 });
 

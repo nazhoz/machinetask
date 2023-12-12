@@ -22,6 +22,8 @@ import Profile from './Components/Profile'
 import FogotPass from './Components/FogotPass'
 import Navigation from './Components/Navigation'
 import Main from './Components/Main'
+import PayToRegister from './Components/PayToRegister'
+import AuctionPage from './Components/AuctionPage'
 
 const App = () => {
  
@@ -39,6 +41,8 @@ const App = () => {
         <Stack.Screen name='Main' component={Main}/>
         <Stack.Screen name='Otp' component={Otp}/>
         <Stack.Screen name='forgot' component={FogotPass}/>
+        <Stack.Screen name='auctionpage' component={AuctionPage}/>
+        <Stack.Screen name='paytoregister' component={PayToRegister}/>
         
 
        </Stack.Navigator>
