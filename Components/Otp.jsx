@@ -1,6 +1,8 @@
-import { StyleSheet, Text, TextInput, View ,TouchableOpacity, Image,KeyboardAvoidingView} from 'react-native'
+import { StyleSheet, Text, TextInput, View ,TouchableOpacity, Image,KeyboardAvoidingView, ActivityIndicator} from 'react-native'
 import React, { useState,useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native'
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'
 import { Alert } from 'react-native'
@@ -15,6 +17,8 @@ export default function Otp() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const [loading, setLoading] = useState(false)
 
   const handleShowPassword = (text)=>{
     setPassword(text)
@@ -48,17 +52,23 @@ export default function Otp() {
 
     const handleLogin = async () => {
       try {
+        setLoading(true)
         const response = await axios.post(
           'https://auction.riolabz.com/v1/auth/login',
           { email, password }
         );
   
-        // Assuming successful login, navigate to AuctionInventory page
+        const sessionToken = response.data.data.sessionToken;
+        await AsyncStorage.setItem('sessionToken', sessionToken);
+
         navigation.navigate('Main', {
           sessionToken: response.data.data.sessionToken,
         });
       } catch (error) {
         console.error('Login failed:', error);
+        Alert.alert("Error, Login Failed. please try again")
+      }finally{
+        setLoading(false)
       }
     };
 
@@ -122,17 +132,18 @@ export default function Otp() {
      </View>
 
      <TouchableOpacity
-       style={{width:"90%",height:55,backgroundColor: "#EDAE10",alignItems:"center",justifyContent:"center",borderRadius:7,left:20, top:60}}
+       style={{width:"90%",height:55,backgroundColor: "#EDAE10",alignItems:"center",justifyContent:"center",borderRadius:7,left:20, top:60, opacity : loading ? 0.5:1}}
       //  onPress={()=> navigation.navigate('Main')}
       onPress={handleLogin}
+      disabled={loading}
       >
-        <Text style={{fontSize:15,
-          color:"white",
-          fontWeight:"600",}}>Log in</Text>
+       { loading ?(
+        <ActivityIndicator size="small" color="white"/>
+       ):( <Text style={{fontSize:15,color:"white",fontWeight:"600",}}>Log in</Text>)}
      </TouchableOpacity>
      
      <TouchableOpacity
-      onPress={()=>navigation.navigate("forgot")}
+      // onPress={()=>navigation.navigate("forgot")}
       style={{ width:'95%', alignItems:'center', top:60}}
      >
      <Text style={{color:'black', fontSize:13, fontWeight:'500'}}>Forgot Password ?</Text>
@@ -146,7 +157,7 @@ export default function Otp() {
 
      <View style={{flexDirection:'row', width:'95%', alignItems:'center', justifyContent:'center', top:60,}}>
     <TouchableOpacity
-      onPress={()=>navigation.navigate("Start")}
+      // onPress={()=>navigation.navigate("Start")}
       // onPress={handleClick}
       style={{borderWidth:.5, width:"50%", height:40, borderRadius:10,alignItems:'center', justifyContent:"center"}}
      >

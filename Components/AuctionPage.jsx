@@ -1,22 +1,69 @@
-import { StyleSheet, Text, View, Image,TouchableOpacity , ScrollView} from 'react-native'
+import { StyleSheet, Text, View, Image,TouchableOpacity , ScrollView, ActivityIndicator} from 'react-native'
 import React, { useEffect, useState } from 'react'
 import DraggableBottomSheet from './DraggableBottomSheet';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 const AuctionPage = ({route}) => {
-
-  const {item} = route.params;
+  const [selectedItem, setSelectedItem] = useState(null);
+  const {vehicleMake} = route.params;
   const [isLiveAuction, setIsLiveAuction] = useState(true);
   const [isBottomVisible, setIsBottomVisible] = useState(false);
+  const [auctionData, setAuctionData] = useState([]);
+  const [bid,setBid]=useState(0)
 
+  console.log("aution page data",auctionData);
+  console.log("vehicleMake :",vehicleMake);
+  const sessionToken = AsyncStorage.getItem('sessionToken');
+  
+  const fetchAuctionData = async () => {
+    try {
+      const sessionToken = await AsyncStorage.getItem('sessionToken');
+      const response = await axios.get(
+        'https://auction.riolabz.com/v1/auction_inventory/get/all/participant?auctionId=654c6e0e4c178569c7bc607f',
+        {
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+          },
+        }
+      );
 
-  const handleToggle = () => {
-    setIsLiveAuction(!isLiveAuction);
+      // Access the auction inventory data from the "data" field
+      const inventoryData = response.data.data;
+      setAuctionData(inventoryData);
+    } catch (error) {
+      // console.error('Error fetching auction data:', error);
+
+    }
+  };
+
+  useEffect(() => {
+    // Fetch data on component mount
+    fetchAuctionData();
+
+    // Set interval for auto-refresh every 2 seconds
+    const interval = setInterval(fetchAuctionData, 2000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, [sessionToken]);
+
+  const handleToggle = (value) => {
+    setIsLiveAuction(value);
+    if (isLiveAuction){
+      setBid(10)
+    }
+    else{
+      setBid(0)
+    }
   };
 
   //=========================================== BOTTOM SHEET====================================================
 
-  const toggleBottomSheet = () =>{
-    setIsBottomVisible(!isBottomVisible)
+  const toggleBottomSheet = (item) => {
+    fetchAuctionData();
+    setSelectedItem(item);
+    setIsBottomVisible(!isBottomVisible);
   }
 
   const bottomSheetCloseButton = ()=>{
@@ -25,6 +72,7 @@ const AuctionPage = ({route}) => {
 
   return (
     <View style={styles.container}>
+
 
         {/*========================================== NAVBAR ============================================= */}
 
@@ -52,7 +100,7 @@ const AuctionPage = ({route}) => {
           styles.button,
           isLiveAuction ? styles.activeButton : styles.inactiveButton,
         ]}
-        onPress={handleToggle}
+        onPress={()=> handleToggle(true)}
       >
         <Text style={styles.buttonText}>Live Inventory</Text>
       </TouchableOpacity>
@@ -62,7 +110,7 @@ const AuctionPage = ({route}) => {
           styles.button,
           !isLiveAuction ? styles.activeButton : styles.inactiveButton,
         ]}
-        onPress={handleToggle}
+        onPress={()=>handleToggle(false)}
       >
         <Text style={styles.buttonText}>Completed</Text>
       </TouchableOpacity>
@@ -70,19 +118,21 @@ const AuctionPage = ({route}) => {
 
         {/* ====================================== AUCTION NAME ============================================== */}
 
-        <View style={{width:"100%", justifyContent:'center', alignItems:'center',top:30}}>
+        <View style={{width:"100%", justifyContent:'center', alignItems:'center',top:15}}>
           <Text style={styles.auctionIdText}>
-            {item.inventory.auction.name}
-            {console.log("User",item.userHighestBid)}
-            {console.log("Images",item.inventory.images)}
+            Auction check 9/11
+
             </Text>
             
         </View>
       
-        <ScrollView style={{top:20,width: "100%",flex:1}} contentContainerStyle={{ justifyContent: 'center', alignItems: 'center',gap:15 }}>
-              <View style={styles.itemContainer}>
+        <ScrollView style={{top:20,width: "100%",flex:1, marginBottom:50}} contentContainerStyle={{ justifyContent: 'center', alignItems: 'center',gap:15, paddingBottom:40 }}>
+        {auctionData
+            .filter(item => item.inventory.vehicleInfo.make == vehicleMake && item.inventory.totalBidCount >= bid  ) 
+            .map(item => (
+              <View style={styles.itemContainer}  key={item.inventory._id}>
                 <View style={{width:'100%'}}>
-                  <Image style={{width:381, height:250,resizeMode: "cover",bottom:20,right:10,borderRadius:10}} source={require('../Assets/test/ecosport.png')}/>
+                  <Image style={{width:"106%", height:250,resizeMode: "cover",bottom:20,right:10,borderRadius:10}} source={require('../Assets/test/ecosport.png')}/>
                   <View style={{position:'absolute', flexDirection:'row', justifyContent:'space-between', width:'95%', alignItems:'center', left:10,}}>
                     <View style={{width:180, height:35,backgroundColor:'white', justifyContent:'center', alignItems:'center', borderRadius:10}}>
                     <Text style={{color:'black',fontWeight:"800"}}>View Inspection Report</Text>
@@ -153,7 +203,7 @@ const AuctionPage = ({route}) => {
                   <TouchableOpacity style={{width:"45%",backgroundColor:'#fff', height:50,justifyContent:'center',alignItems:'center',borderRadius:5,borderWidth:.2}}>
                     <Text style={{color:'grey',fontWeight: '800'}}>Set Auto Bid</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={toggleBottomSheet} style={{width:"45%",backgroundColor:'#FFDD03', height:50,justifyContent:'center',alignItems:'center',borderRadius:10}}>
+                  <TouchableOpacity onPress={() => toggleBottomSheet(item)} style={{width:"45%",backgroundColor:'#FFDD03', height:50,justifyContent:'center',alignItems:'center',borderRadius:10}}>
                   <Text style={{color:'white',fontWeight: '800'}}>Place Bid</Text>
                   </TouchableOpacity>
                 </View>
@@ -171,44 +221,17 @@ const AuctionPage = ({route}) => {
                   
                 </View>
 
-
-                {/* <Text style={styles.auctionIdText}>
-                  Fuel: {item.inventory.vehicleInfo.fuelType}
-                </Text> */}
-                
-                {/* <Text style={styles.auctionIdText}>
-                  Details:  {console.log(item.inventory.images.exterior)}
-                  Details:  {console.log(item.inventory.images.general)}
-                </Text> */}
-                {/* <View style={styles.imageContainer}>
-                {item.inventory.images && item.inventory.images.general && typeof item.inventory.images.general === 'string' ? (
-                    <Image
-                      source={{ uri: item.inventory.images.general }}
-                      style={styles.image}
-                    />
-                  ) : (
-                    <Text>Byeeee</Text>
-                  )}
-                </View>  */}
-                {/* <View style={styles.imageContainer}>
-             
-                    <Image
-                      source={{ uri: item.inventory.images.exterior }}
-                      style={styles.image}
-                    />
-                </View> */}
-                
-                
-                
                
               </View>
+              ))}
               
       </ScrollView>
-      {
-      isBottomVisible && (
-      <DraggableBottomSheet onClose={bottomSheetCloseButton} item={item} >
-      </DraggableBottomSheet>
-      )}
+      {isBottomVisible && (
+  <DraggableBottomSheet
+    onClose={bottomSheetCloseButton}
+    item={selectedItem}
+  />
+)}
     </View>
   )
 }
@@ -318,18 +341,3 @@ const styles = StyleSheet.create({
     fontWeight:"800"
   },
 })
-
-// import { StyleSheet, Text, View } from 'react-native'
-// import React from 'react'
-
-// const AuctionPage = () => {
-//   return (
-//     <View>
-//       <Text>AuctionPage</Text>
-//     </View>
-//   )
-// }
-
-// export default AuctionPage
-
-// const styles = StyleSheet.create({})

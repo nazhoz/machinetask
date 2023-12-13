@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 
 const Main = ({ route,navigation }) => {
@@ -44,11 +44,9 @@ const Main = ({ route,navigation }) => {
     // Fetch data on component mount
     fetchAuctionData();
 
-    // Set interval for auto-refresh every 2 seconds
-    const interval = setInterval(fetchAuctionData, 2000);
+    // const interval = setInterval(fetchAuctionData, 2000);
 
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, [route.params.sessionToken]);
 
   useEffect(() => {
@@ -94,7 +92,7 @@ const Main = ({ route,navigation }) => {
       </TouchableOpacity>
         </View>
       
-    <ScrollView style={{top:20,width: "100%",flex:1}} contentContainerStyle={{ justifyContent: 'center', alignItems: 'center',gap:15 }}>
+    <ScrollView style={{top:20,width: "100%",flex:1}} contentContainerStyle={{ justifyContent: 'center', alignItems: 'center',gap:15,paddingBottom:60 }}>
 
         {!auctionData ? (
           <Text style={styles.noDataText}>No auction data available.</Text>
@@ -154,8 +152,9 @@ const Main = ({ route,navigation }) => {
                 </View>
 
                 <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center',width:'100%',gap:10}}>
-                  <TouchableOpacity onPress={()=>navigation.navigate('auctionpage',{item})} style={{width:"70%",backgroundColor:'#FFDD03', height:50,justifyContent:'center',alignItems:'center',borderRadius:10}}>
-                    <Text style={{color:'white',fontWeight: '800'}}>View</Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('auctionpage', { vehicleMake: item.inventory.vehicleInfo.make })} style={{width:"70%",backgroundColor:'#FFDD03', height:50,justifyContent:'center',alignItems:'center',borderRadius:10}}
+                  >               
+                    <Text style={{color:'white',fontWeight: '800'}}>View</Text>                    
                   </TouchableOpacity>
                   <TouchableOpacity style={{width:"15%",backgroundColor:'#DCDCDB', height:50,justifyContent:'center',alignItems:'center',borderRadius:10}}>
                     <Image style={{width:20, height:20}} source={require('../Assets/test/download.png')}/>
@@ -163,7 +162,7 @@ const Main = ({ route,navigation }) => {
                 </View>
 
                 <View style={{justifyContent:'center',alignItems:'center',width:'100%'}}>
-                  <TouchableOpacity  onPress={()=>navigation.navigate('paytoregister')}  style={{width:"90%",backgroundColor:'#52BE80', height:50,justifyContent:'center',alignItems:'center',borderRadius:10}}>
+                  <TouchableOpacity style={{width:"90%",backgroundColor:'#52BE80', height:50,justifyContent:'center',alignItems:'center',borderRadius:10}}>
                     <Text style={{color:'white',fontWeight: '800'}}>Pay to Register</Text>
                   </TouchableOpacity>
                 </View>
